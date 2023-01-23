@@ -10,6 +10,7 @@
             <div class="mt-1 relative rounded-md shadow-md">
               <input
                 v-model="ticker"
+                @keydown="(tickerInclude = false), (tickerExisted = false)"
                 @keydown.enter="add"
                 type="text"
                 name="wallet"
@@ -18,7 +19,7 @@
                 placeholder="Например DOGE"
               />
             </div>
-            <div
+            <!-- <div
               class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
             >
               <span
@@ -26,23 +27,13 @@
               >
                 BTC
               </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                DOGE
-              </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                BCH
-              </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                CHD
-              </span>
+            </div> -->
+            <div v-if="tickerInclude" class="text-sm text-red-600">
+              Такой тикер уже добавлен
             </div>
-            <div class="text-sm text-red-600">Такой тикер уже добавлен</div>
+            <div v-if="tickerExisted" class="text-sm text-red-600">
+              Такого тикера не существует
+            </div>
           </div>
         </div>
         <button
@@ -160,15 +151,32 @@ export default {
       tickers: [],
       sel: null,
       graph: [],
+      tickerInclude: false,
+      allTickers: [],
+      tickerExisted: false,
     };
   },
-
+  created() {
+    fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true")
+      .then((response) => response.json())
+      .then((result) => (this.allTickers = result));
+  },
   methods: {
     add() {
       const currentTicker = {
-        name: this.ticker,
+        name: this.ticker.toUpperCase(),
         price: "-",
       };
+      // проверка тикера на дубликацию
+      if (this.tickers.find((t) => t.name === currentTicker.name)) {
+        return (this.tickerInclude = !this.tickerInclude);
+      }
+      // проверка тикера на существование
+      if (
+        !Object.keys(this.allTickers.Data).find((r) => r === currentTicker.name)
+      ) {
+        return (this.tickerExisted = !this.tickerExisted);
+      }
       this.tickers.push(currentTicker);
       setInterval(async () => {
         const f = await fetch(

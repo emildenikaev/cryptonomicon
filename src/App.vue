@@ -204,8 +204,6 @@ export default {
     fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true")
       .then((response) => response.json())
       .then((result) => (this.allTickers = result));
-
-    setInterval(this.updateTickers, 5000);
   },
 
   computed: {
@@ -248,6 +246,9 @@ export default {
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
+          if (t === this.selectedTicker) {
+            this.graph.push(price);
+          }
           t.price = price;
         });
     },
@@ -256,16 +257,6 @@ export default {
         return price;
       }
       return price > 1 ? price.toFixed(2) : price.toPrecision(2);
-    },
-
-    async updateTickers() {
-      // if (!this.tickers.length) {
-      //   return;
-      // }
-      // this.tickers.forEach((ticker) => {
-      //   const price = exchangeData[ticker.name.toUpperCase()];
-      //   ticker.price = price ?? "-";
-      // });
     },
 
     add() {
